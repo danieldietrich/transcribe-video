@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Function to display usage information
+print_usage_and_exit() {
+    echo "Usage: $0 <video_file_path>"
+    exit 1
+}
+
+# Check if the command line argument is provided
+if [ "$#" -ne 1 ]; then
+    print_usage_and_exit
+fi
+
+# First command line argument is the input file stored in the variable video_file_path
+video_file_path="$1"
+
+# Verify if the provided path exists
+if [ ! -f "$video_file_path" ]; then
+    echo "Error: The file '$video_file_path' does not exist."
+    print_usage_and_exit
+fi
+
+if [ ! -d "$(pipenv --venv 2>/dev/null)" ]; then
+    echo "Setting up Python environment..."
+    pipenv install
+fi
+
+# Extract the base name (without extension) from the video file path
+base="${video_file_path%.*}"
+audio_file_path="$base.wav"
+output_file_path="$base.txt"
+
+# Extract audio from the video using FFmpeg
+echo "Extracting audio from '$video_file_path'..."
+ffmpeg -loglevel quiet -stats -i "$video_file_path" -vn -acodec pcm_s16le -ar 44100 -ac 2 "$audio_file_path" -y
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to extract audio from '$video_file_path'."
+    exit 1
+fi
+
+# Run the Python script for transcription
+echo "Transcribing audio..."
+pipenv run python transcribe.py "$audio_file_path" "$output_file_path"
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to transcribe audio."
+    exit 1
+fi
+
+# Clean up temporary files
+echo "Cleaning up temporary files..."
+rm "$audio_file_path"
