@@ -3,7 +3,7 @@ import sys
 import os
 
 def print_usage_and_exit():
-    print("Usage: python script_name.py <audio_file_path> <output_file_path>")
+    print("Usage: python transcribe.py <audio_file_path> <output_file_path>")
     sys.exit(1)
 
 # Check if the command line argument is provided
