@@ -11,6 +11,9 @@ if [ "$#" -ne 1 ]; then
     print_usage_and_exit
 fi
 
+# Get the directory of the current script
+script_dir="$(dirname "$(readlink -f "$0")")"
+
 # First command line argument is the input file stored in the variable video_file_path
 video_file_path="$1"
 
@@ -26,7 +29,8 @@ if [ ! -d "$(pipenv --venv 2>/dev/null)" ]; then
 fi
 
 # Extract the base name (without extension) from the video file path
-base="${video_file_path%.*}"
+full_qualified_video_file_path=$(readlink -f "$video_file_path")
+base="${full_qualified_video_file_path%.*}"
 audio_file_path="$base.wav"
 output_file_path="$base.txt"
 
@@ -40,7 +44,8 @@ fi
 
 # Run the Python script for transcription
 echo "Transcribing audio..."
-pipenv run python transcribe.py "$audio_file_path" "$output_file_path"
+# Change to the directory stored in $script_dir and run the command
+(cd "$script_dir" && pipenv run python transcribe.py "$audio_file_path" "$output_file_path")
 if [ $? -ne 0 ]; then
     echo "Error: Failed to transcribe audio."
     exit 1
