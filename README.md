@@ -8,5 +8,5 @@
 ## Usage
 
 ```bash
-./transcribe.py <video_file>
+./transcribe <video_file>
 ```
